@@ -72,14 +72,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _topClube = topClube;
         _isLoading = false;
       });
-
-      // Debug: verificar dados carregados
-      print('🔍 Dashboard - Top Liga carregados: ${topLiga.length}');
-      if (topLiga.isNotEmpty) {
-        print(
-          '🔍 Primeiro jogador: ${topLiga.first.apelido}, média=${topLiga.first.mediaTemporada}',
-        );
-      }
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -91,10 +83,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Na Gaveta'),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(84),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00B894), Color(0xFF0066FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
+          ),
+          centerTitle: true,
+          title: const Text('Na Gaveta'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _carregarDados,
@@ -141,56 +148,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFiltros() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Filtros',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Posição:',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _posicaoSelecionada,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  hint: const Text('Todas'),
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('Todas'),
-                    ),
-                    ..._posicoes
-                        .where((p) => p != 'Todas')
-                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                        .toList(),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _posicaoSelecionada = value);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _posicoes.map((p) {
+              final isSelected =
+                  (p == 'Todas' && _posicaoSelecionada == null) ||
+                  (_posicaoSelecionada == p);
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Text(p),
+                  selected: isSelected,
+                  onSelected: (sel) {
+                    setState(() {
+                      _posicaoSelecionada = (p == 'Todas') ? null : p;
+                    });
                     _carregarDados();
                   },
+                  selectedColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Colors.white,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.grey[800],
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
                 ),
-              ],
-            ),
-          ],
+              );
+            }).toList(),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -203,66 +193,121 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        Card(
-          elevation: 2,
-          child: Column(
-            children: jogadores.asMap().entries.map((entry) {
-              final index = entry.key;
-              final jogador = entry.value;
-              return Column(
-                children: [
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: _getCorPosicao(jogador.posicao),
-                      child: Text(
-                        '${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+        Column(
+          children: jogadores.asMap().entries.map((entry) {
+            final index = entry.key;
+            final jogador = entry.value;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            DetalhesJogadorScreen(atletaId: jogador.atletaId),
                       ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
                     ),
-                    title: Text(
-                      jogador.apelido,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text('${jogador.clube} - ${jogador.posicao}'),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green[700],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        jogador.mediaTemporada.toStringAsFixed(1),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.12),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    onTap: () {
-                      print(
-                        'Clicou em: ${jogador.apelido} (ID: ${jogador.atletaId})',
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DetalhesJogadorScreen(atletaId: jogador.atletaId),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                jogador.apelido,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${jogador.clube} • ${jogador.posicao}',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    },
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00C853), Color(0xFF00796B)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.12),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            jogador.mediaTemporada.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  if (index < jogadores.length - 1) const Divider(height: 1),
-                ],
-              );
-            }).toList(),
-          ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

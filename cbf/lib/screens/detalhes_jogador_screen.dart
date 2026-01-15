@@ -40,6 +40,9 @@ class _DetalhesJogadorScreenState extends State<DetalhesJogadorScreen> {
         widget.atletaId,
       );
 
+      // Ordena as rodadas por número da rodada
+      rodadas.sort((a, b) => a.rodada.compareTo(b.rodada));
+
       setState(() {
         _jogador = jogador;
         _rodadas = rodadas;
@@ -56,10 +59,28 @@ class _DetalhesJogadorScreenState extends State<DetalhesJogadorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_jogador?.apelido ?? 'Carregando...'),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(84),
+        child: AppBar(
+          leading: Navigator.canPop(context)
+              ? const BackButton(color: Colors.white)
+              : null,
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00B894), Color(0xFF0066FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
+          ),
+          centerTitle: true,
+          title: Text(_jogador?.apelido ?? 'Carregando...'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
       ),
       body: _buildContent(),
     );
@@ -114,41 +135,54 @@ class _DetalhesJogadorScreenState extends State<DetalhesJogadorScreen> {
 
   Widget _buildCabecalho() {
     return Card(
-      elevation: 4,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: _getCorPosicao(_jogador!.posicao),
-              child: _jogador!.foto.isNotEmpty
-                  ? ClipOval(
-                      child: Image.network(
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: ClipOval(
+                child: _jogador!.foto.isNotEmpty
+                    ? Image.network(
                         _jogador!.foto,
                         width: 80,
                         height: 80,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return Text(
-                            _jogador!.posicao,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          return Center(
+                            child: Text(
+                              _jogador!.posicao,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           );
                         },
+                      )
+                    : Center(
+                        child: Text(
+                          _jogador!.posicao,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
-                    )
-                  : Text(
-                      _jogador!.posicao,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -258,9 +292,11 @@ class _DetalhesJogadorScreenState extends State<DetalhesJogadorScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Preço',
-                'C\$ ${_jogador!.preco.toStringAsFixed(2)}',
-                Icons.attach_money,
+                'Últ. Rodada',
+                _rodadas.isNotEmpty
+                    ? _rodadas.last.pontos.toStringAsFixed(1)
+                    : '-',
+                Icons.history_toggle_off,
                 Colors.orange,
               ),
             ),

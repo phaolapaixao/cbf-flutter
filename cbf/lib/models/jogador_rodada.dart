@@ -29,9 +29,14 @@ class JogadorRodada {
       nome: json['nome'] as String? ?? '',
       apelido: json['apelido'] as String? ?? '',
       foto: json['foto'] as String? ?? '',
-      clube: json['clube_id'] as String? ?? json['clube'] as String? ?? '',
+      clube:
+          (json['clube_id'] as int?)?.toString() ??
+          json['clube'] as String? ??
+          '',
       posicao:
-          json['posicao_id'] as String? ?? json['posicao'] as String? ?? '',
+          (json['posicao_id'] as int?)?.toString() ??
+          json['posicao'] as String? ??
+          '',
       rodada: json['rodada_id'] as int? ?? json['rodada'] as int? ?? 0,
       pontos: (json['pontuacao_fantasy'] as num? ?? json['pontos'] as num? ?? 0)
           .toDouble(),

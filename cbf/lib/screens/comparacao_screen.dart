@@ -4,7 +4,6 @@ import '../models/jogador.dart';
 import '../models/jogador_rodada.dart';
 import '../models/comparacao_response.dart';
 import '../services/jogador_service.dart';
-import 'lista_jogadores_screen.dart';
 
 class ComparacaoScreen extends StatefulWidget {
   const ComparacaoScreen({Key? key}) : super(key: key);
@@ -72,16 +71,6 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
         _rodadas2 = rodadas2;
         _isLoading = false;
       });
-
-      // Debug: imprimir dados para verificar
-      print('Rodadas Jogador 1: ${rodadas1.length}');
-      print('Rodadas Jogador 2: ${rodadas2.length}');
-      if (rodadas1.isNotEmpty) {
-        print('Exemplo rodada 1: rodada=${rodadas1.first.rodada}, pontos=${rodadas1.first.pontos}');
-      }
-      if (rodadas2.isNotEmpty) {
-        print('Exemplo rodada 2: rodada=${rodadas2.first.rodada}, pontos=${rodadas2.first.pontos}');
-      }
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -93,10 +82,28 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Comparação de Jogadores'),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(84),
+        child: AppBar(
+          leading: Navigator.canPop(context)
+              ? const BackButton(color: Colors.white)
+              : null,
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00B894), Color(0xFF0066FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
+          ),
+          centerTitle: true,
+          title: const Text('Comparação de Jogadores'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -152,7 +159,8 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
     return GestureDetector(
       onTap: () => _selecionarJogador(numero),
       child: Card(
-        elevation: 4,
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           height: 150,
           padding: const EdgeInsets.all(12),
@@ -176,14 +184,24 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: _getCorPosicao(jogador.posicao),
-                      child: Text(
-                        jogador.posicao,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          jogador.posicao,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -326,12 +344,20 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
 
     // Calcula os valores mínimos e máximos para os eixos
     final todasRodadas = [..._rodadas1, ..._rodadas2];
-    final minRodada = todasRodadas.map((r) => r.rodada).reduce((a, b) => a < b ? a : b).toDouble();
-    final maxRodada = todasRodadas.map((r) => r.rodada).reduce((a, b) => a > b ? a : b).toDouble();
-    final maxPontos = todasRodadas.map((r) => r.pontos).reduce((a, b) => a > b ? a : b);
-    final minPontos = todasRodadas.map((r) => r.pontos).reduce((a, b) => a < b ? a : b);
-
-    print('🔍 Gráfico: Rodadas de $minRodada a $maxRodada, Pontos de $minPontos a $maxPontos');
+    final minRodada = todasRodadas
+        .map((r) => r.rodada)
+        .reduce((a, b) => a < b ? a : b)
+        .toDouble();
+    final maxRodada = todasRodadas
+        .map((r) => r.rodada)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
+    final maxPontos = todasRodadas
+        .map((r) => r.pontos)
+        .reduce((a, b) => a > b ? a : b);
+    final minPontos = todasRodadas
+        .map((r) => r.pontos)
+        .reduce((a, b) => a < b ? a : b);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,7 +428,9 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
                       lineBarsData: [
                         LineChartBarData(
                           spots: _rodadas1
-                              .where((r) => r.rodada > 0) // Filtra rodadas válidas
+                              .where(
+                                (r) => r.rodada > 0,
+                              ) // Filtra rodadas válidas
                               .map((r) => FlSpot(r.rodada.toDouble(), r.pontos))
                               .toList(),
                           isCurved: true,
@@ -413,7 +441,9 @@ class _ComparacaoScreenState extends State<ComparacaoScreen> {
                         ),
                         LineChartBarData(
                           spots: _rodadas2
-                              .where((r) => r.rodada > 0) // Filtra rodadas válidas
+                              .where(
+                                (r) => r.rodada > 0,
+                              ) // Filtra rodadas válidas
                               .map((r) => FlSpot(r.rodada.toDouble(), r.pontos))
                               .toList(),
                           isCurved: true,
@@ -524,10 +554,28 @@ class _SeletorJogadorScreenState extends State<SeletorJogadorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Selecionar Jogador'),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(84),
+        child: AppBar(
+          leading: Navigator.canPop(context)
+              ? const BackButton(color: Colors.white)
+              : null,
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00B894), Color(0xFF0066FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
+          ),
+          centerTitle: true,
+          title: const Text('Selecionar Jogador'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
       ),
       body: Column(
         children: [
@@ -552,22 +600,50 @@ class _SeletorJogadorScreenState extends State<SeletorJogadorScreen> {
                     itemBuilder: (context, index) {
                       final jogador = _jogadoresFiltrados[index];
                       return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: _getCorPosicao(jogador.posicao),
-                          child: Text(
-                            jogador.posicao,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              jogador.posicao,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                         title: Text(jogador.apelido),
                         subtitle: Text('${jogador.clube} - ${jogador.posicao}'),
-                        trailing: Text(
-                          jogador.mediaTemporada.toStringAsFixed(1),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00C853), Color(0xFF00796B)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            jogador.mediaTemporada.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                         onTap: () {
                           Navigator.pop(context, jogador);

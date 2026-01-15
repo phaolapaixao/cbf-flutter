@@ -3,7 +3,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/lista_jogadores_screen.dart';
 import 'screens/comparacao_screen.dart';
 import 'screens/rankings_screen.dart';
-import 'screens/api_test_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const NaGavetaApp());
@@ -17,19 +17,7 @@ class NaGavetaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Na Gaveta',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
-          primary: Colors.green[700]!,
-        ),
-        useMaterial3: true,
-        cardTheme: const CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
-      ),
+      theme: AppTheme.light(),
       home: const MainScreen(),
     );
   }
@@ -92,16 +80,6 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Rankings',
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.small(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ApiTestScreen()),
-          );
-        },
-        child: const Icon(Icons.bug_report),
-        tooltip: 'Testar API',
       ),
     );
   }

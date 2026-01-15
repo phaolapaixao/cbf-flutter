@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/scout_ranking.dart';
+import '../constants/posicoes.dart';
 import 'api_config.dart';
 import 'cache_service.dart';
 
@@ -28,8 +29,18 @@ class ScoutService {
       final response = await http.get(uri).timeout(ApiConfig.timeoutDuration);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        final ranking = data.map((r) => ScoutRanking.fromJson(r)).toList();
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        // Normaliza para lista quando API retornar objeto ou lista
+        final List<dynamic> data = decoded is List
+            ? decoded
+            : (decoded is Map ? [decoded] : []);
+
+        final ranking = data.map((r) {
+          if (r is Map<String, dynamic>) return ScoutRanking.fromJson(r);
+          if (r is Map)
+            return ScoutRanking.fromJson(Map<String, dynamic>.from(r));
+          return ScoutRanking.fromJson({});
+        }).toList();
 
         // Salva no cache
         await _cacheService.saveToCache(uri.toString(), data);
@@ -39,82 +50,85 @@ class ScoutService {
         throw Exception('Erro ao buscar ranking: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em _fetchRanking: $e');
       throw Exception('Falha ao carregar ranking');
     }
   }
 
   Future<List<ScoutRanking>> topAssistencias({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? posicao,
     String? clube,
     bool useCache = true,
   }) async {
+    final posicaoId = Posicoes.converterParaId(posicao);
     final queryParams = <String, String>{
       'temporada': temporada.toString(),
       'limite': limite.toString(),
     };
     if (rodada != null) queryParams['rodada'] = rodada.toString();
-    if (posicao != null) queryParams['posicao'] = posicao;
+    if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
     if (clube != null) queryParams['clube'] = clube;
 
     return _fetchRanking('ataque/top-assistencias', queryParams, useCache);
   }
 
   Future<List<ScoutRanking>> topDesarmes({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? posicao,
     String? clube,
     bool useCache = true,
   }) async {
+    final posicaoId = Posicoes.converterParaId(posicao);
     final queryParams = <String, String>{
       'temporada': temporada.toString(),
       'limite': limite.toString(),
     };
     if (rodada != null) queryParams['rodada'] = rodada.toString();
-    if (posicao != null) queryParams['posicao'] = posicao;
+    if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
     if (clube != null) queryParams['clube'] = clube;
 
     return _fetchRanking('defesa/top-desarmes', queryParams, useCache);
   }
 
   Future<List<ScoutRanking>> topGols({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? posicao,
     String? clube,
     bool useCache = true,
   }) async {
+    final posicaoId = Posicoes.converterParaId(posicao);
     final queryParams = <String, String>{
       'temporada': temporada.toString(),
       'limite': limite.toString(),
     };
     if (rodada != null) queryParams['rodada'] = rodada.toString();
-    if (posicao != null) queryParams['posicao'] = posicao;
+    if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
     if (clube != null) queryParams['clube'] = clube;
 
     return _fetchRanking('ataque/top-gols', queryParams, useCache);
   }
 
   Future<List<ScoutRanking>> topFinalizacoesPerigosas({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? posicao,
     String? clube,
     bool useCache = true,
   }) async {
+    final posicaoId = Posicoes.converterParaId(posicao);
     final queryParams = <String, String>{
       'temporada': temporada.toString(),
       'limite': limite.toString(),
     };
     if (rodada != null) queryParams['rodada'] = rodada.toString();
-    if (posicao != null) queryParams['posicao'] = posicao;
+    if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
     if (clube != null) queryParams['clube'] = clube;
 
     return _fetchRanking(
@@ -125,7 +139,7 @@ class ScoutService {
   }
 
   Future<List<ScoutRanking>> topDefesasDificeis({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? clube,
@@ -146,7 +160,7 @@ class ScoutService {
   }
 
   Future<List<ScoutRanking>> topJogosSemGol({
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     int? rodada,
     int limite = 10,
     String? clube,

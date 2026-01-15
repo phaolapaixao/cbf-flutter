@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/jogador.dart';
 import '../models/jogador_rodada.dart';
 import '../models/comparacao_response.dart';
+import '../constants/posicoes.dart';
 import 'api_config.dart';
 import 'cache_service.dart';
 
@@ -16,9 +17,11 @@ class JogadorService {
     bool useCache = true,
   }) async {
     try {
+      final posicaoId = Posicoes.converterParaId(posicao);
+
       final queryParams = <String, String>{};
       if (clube != null) queryParams['clube'] = clube;
-      if (posicao != null) queryParams['posicao'] = posicao;
+      if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
       if (nome != null) queryParams['nome'] = nome;
 
       final uri = Uri.parse(
@@ -47,7 +50,6 @@ class JogadorService {
         throw Exception('Erro ao buscar jogadores: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em listarJogadores: $e');
       throw Exception('Falha ao carregar jogadores');
     }
   }
@@ -80,7 +82,6 @@ class JogadorService {
         throw Exception('Erro ao buscar jogador: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em buscarJogadorPorId: $e');
       throw Exception('Falha ao carregar jogador');
     }
   }
@@ -124,7 +125,6 @@ class JogadorService {
         throw Exception('Erro ao buscar rodadas: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em buscarRodadasJogador: $e');
       throw Exception('Falha ao carregar rodadas');
     }
   }
@@ -133,16 +133,18 @@ class JogadorService {
     required int rodada,
     String? posicao,
     int limite = 10,
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     bool useCache = true,
   }) async {
     try {
+      final posicaoId = Posicoes.converterParaId(posicao);
+
       final queryParams = <String, String>{
         'rodada': rodada.toString(),
         'limite': limite.toString(),
         'temporada': temporada.toString(),
       };
-      if (posicao != null) queryParams['posicao'] = posicao;
+      if (posicaoId != null) queryParams['posicao'] = posicaoId.toString();
 
       final uri = Uri.parse(
         '${ApiConfig.baseUrl}/ranking/rodada',
@@ -162,16 +164,7 @@ class JogadorService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        print('🔍 Ranking API - Total de registros: ${data.length}');
-        if (data.isNotEmpty) {
-          print('🔍 Primeiro item JSON: ${data[0]}');
-        }
         final ranking = data.map((r) => JogadorRodada.fromJson(r)).toList();
-        if (ranking.isNotEmpty) {
-          print(
-            '🔍 Após parse: ${ranking[0].apelido} - rodada=${ranking[0].rodada}, pontos=${ranking[0].pontos}',
-          );
-        }
         await _cacheService.saveToCache(uri.toString(), data);
 
         return ranking;
@@ -179,7 +172,6 @@ class JogadorService {
         throw Exception('Erro ao buscar ranking: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em buscarRankingRodada: $e');
       throw Exception('Falha ao carregar ranking');
     }
   }
@@ -187,7 +179,7 @@ class JogadorService {
   Future<ComparacaoResponse?> compararJogadores(
     int idJogador1,
     int idJogador2, {
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     bool useCache = true,
   }) async {
     try {
@@ -225,14 +217,13 @@ class JogadorService {
         throw Exception('Erro ao comparar jogadores: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em compararJogadores: $e');
       throw Exception('Falha ao comparar jogadores');
     }
   }
 
   Future<Map<String, dynamic>> estatisticasClube(
     String clube, {
-    int temporada = 2025,
+    int temporada = ApiConfig.defaultSeason,
     bool useCache = true,
   }) async {
     try {
@@ -263,7 +254,7 @@ class JogadorService {
         throw Exception('Erro ao buscar estatísticas: ${response.statusCode}');
       }
     } catch (e) {
-      print('Erro em estatisticasClube: $e');
+
       throw Exception('Falha ao carregar estatísticas');
     }
   }

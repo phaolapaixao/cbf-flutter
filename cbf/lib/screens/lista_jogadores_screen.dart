@@ -98,21 +98,21 @@ class _ListaJogadoresScreenState extends State<ListaJogadoresScreen> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _posicaoFiltro ?? 'Todas',
+                  DropdownButtonFormField<String?>(
+                    value: _posicaoFiltro,
                     decoration: const InputDecoration(
                       labelText: 'Posição',
                       border: OutlineInputBorder(),
                     ),
                     items: _posicoes
                         .map(
-                          (p) => DropdownMenuItem(
+                          (p) => DropdownMenuItem<String?>(
                             value: p == 'Todas' ? null : p,
                             child: Text(p),
                           ),
                         )
                         .toList(),
-                    onChanged: (value) {
+                    onChanged: (String? value) {
                       setModalState(() => _posicaoFiltro = value);
                     },
                   ),
@@ -154,16 +154,32 @@ class _ListaJogadoresScreenState extends State<ListaJogadoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Jogadores'),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _mostrarFiltros,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(84),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00B894), Color(0xFF0066FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
           ),
-        ],
+          centerTitle: true,
+          title: const Text('Jogadores'),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.filter_list, color: Colors.white),
+              onPressed: _mostrarFiltros,
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
       ),
       body: Column(
         children: [
@@ -246,89 +262,124 @@ class _ListaJogadoresScreenState extends State<ListaJogadoresScreen> {
         itemCount: _jogadoresFiltrados.length,
         itemBuilder: (context, index) {
           final jogador = _jogadoresFiltrados[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: _getCorPosicao(jogador.posicao),
-                child: Text(
-                  jogador.posicao,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          DetalhesJogadorScreen(atletaId: jogador.atletaId),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
                   ),
-                ),
-              ),
-              title: Text(
-                jogador.apelido,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('${jogador.clube} - ${jogador.posicao}'),
-                  const SizedBox(height: 4),
-                  Row(
+                  child: Row(
                     children: [
-                      const Icon(Icons.star, size: 14, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Média: ${jogador.mediaTemporada.toStringAsFixed(1)}',
-                        style: const TextStyle(fontSize: 12),
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            jogador.posicao,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      const Icon(
-                        Icons.trending_up,
-                        size: 14,
-                        color: Colors.green,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              jogador.apelido,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${jogador.clube} • ${jogador.posicao}',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Média: ${jogador.mediaTemporada.toStringAsFixed(1)}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                const SizedBox(width: 12),
+                                const Icon(
+                                  Icons.trending_up,
+                                  size: 14,
+                                  color: Colors.green,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Últ.5: ${jogador.mediaUltimas5.toStringAsFixed(1)}',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Últ. 5: ${jogador.mediaUltimas5.toStringAsFixed(1)}',
-                        style: const TextStyle(fontSize: 12),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00C853), Color(0xFF00796B)],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          jogador.mediaTemporada.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-              trailing: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green[700],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      jogador.mediaTemporada.toStringAsFixed(1),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${jogador.jogos} jogos',
-                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        DetalhesJogadorScreen(atletaId: jogador.atletaId),
-                  ),
-                );
-              },
             ),
           );
         },

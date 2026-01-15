@@ -161,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<String?>(
                   value: _posicaoSelecionada,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
@@ -172,16 +172,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   hint: const Text('Todas'),
                   items: [
-                    const DropdownMenuItem<String>(
+                    const DropdownMenuItem<String?>(
                       value: null,
                       child: Text('Todas'),
                     ),
                     ..._posicoes
                         .where((p) => p != 'Todas')
-                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                        .map(
+                          (p) => DropdownMenuItem<String?>(
+                            value: p,
+                            child: Text(p),
+                          ),
+                        )
                         .toList(),
                   ],
-                  onChanged: (value) {
+                  onChanged: (String? value) {
                     setState(() => _posicaoSelecionada = value);
                     _carregarDados();
                   },
