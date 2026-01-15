@@ -74,10 +74,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
 
       // Debug: verificar dados carregados
-      print('🔍 Dashboard - Top Liga carregados: ${topLiga.length}');
+      print('Dashboard - Top Liga carregados: ${topLiga.length}');
       if (topLiga.isNotEmpty) {
         print(
-          '🔍 Primeiro jogador: ${topLiga.first.apelido}, média=${topLiga.first.mediaTemporada}',
+          'Primeiro jogador: ${topLiga.first.apelido}, média=${topLiga.first.mediaTemporada}',
         );
       }
     } catch (e) {
