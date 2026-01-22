@@ -2,6 +2,10 @@
 
 Aplicativo Flutter para visualização de jogadores, rankings e scouts.
 
+# Link do Vídeo
+https://youtu.be/jjLmvZX0pcQ
+
+
 **Principais recursos**
 - Listagem de jogadores com filtros por posição
 - Tela de detalhes do jogador com histórico de rodadas e gráficos
